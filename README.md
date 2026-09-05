@@ -100,3 +100,9 @@ to any real address had no matching route and was dropped. I corrected that and 
 [Target group showing instance health mid failover](images/target-group-mid-failover.png)
 
 [ASG log showing an instance launch in response to health check fail after instance termination](images/asg-instance-replacement.png)
+
+
+## Things I would do differently
+- I would move off my root account and instead create an IAM user.
+- I would use HTTPS with ACM.
+- I would write a two statement IAM policy to pair each action with only the resource it needs.
