@@ -64,3 +64,26 @@ and look at the response, matching the expected status code within the timeout t
 The decision to have two AZs also stemmed from the decision to optimize availability. I wanted to have the application hosted 
 in two different availability zones so that if one availability zone had any issues, the application would still be up in 
 another availability zone. Two is also the minimum the ALB requires so I needed two availability zones in order to create the ALB.
+
+## Problems 
+### Missing S3 endpoint 
+When I launched a test instance, I discovered in the system log that there was a curl timeout to the Amazon Linux repos, then 
+dnf ignoring the repos and no match for nginx. The instance could not fetch the packages from S3 and that made me realize I 
+did not create the S3 endpoint so I went back to do that.
+
+### S3 endpoint on wrong route table
+The system log still showed a curl timeout to the Amazon Linux repos, meaning the instance still could not fetch the 
+packages. I went back to make sure there were no issues with the S3 endpoint and realized the endpoint was associated with the 
+public subnet's route table. I associated it with the private subnet's route table.
+
+### Missing instance profile
+In the system log, the `aws s3 sync` in my user data failed with an `Unable to locate credentials` error. I went back to the 
+launch template to check if the IAM role was in the instance profile section and it was not. I had to add it and that error was fixed.
+
+### Incorrect destination CIDR
+I could not reach the ALB from the web browser, I was getting a timeout error. I checked the ALB, ASG, the ALB security group and 
+instance security group, but nothing was wrong and the instances were healthy. I then tried to reach the ALB from my phone and it 
+was still the same, so I decided to try reaching it from the terminal of my laptop and the DNS resolved but the TCP connection 
+timed out. I went back to check the route table which has a route pointing to the internet gateway and instead of setting `0.0.0.0/0` 
+as the destination address, I had set `0.0.0.0/16`. `0.0.0.0/16` only matches the addresses starting `0.0.x.x` so the return traffic 
+to any real address had no matching route and was dropped. I corrected that and I could now reach the ALB from my phone and from the browser.
