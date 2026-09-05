@@ -87,3 +87,16 @@ was still the same, so I decided to try reaching it from the terminal of my lapt
 timed out. I went back to check the route table which has a route pointing to the internet gateway and instead of setting `0.0.0.0/0` 
 as the destination address, I had set `0.0.0.0/16`. `0.0.0.0/16` only matches the addresses starting `0.0.x.x` so the return traffic 
 to any real address had no matching route and was dropped. I corrected that and I could now reach the ALB from my phone and from the browser.
+
+## Screenshots
+[Load balancer with both targets healthy](images/alb-healthy-targets.png)
+
+[ASG instances across two availability zones](images/asg-instances-across-AZs.png)
+
+[ALB response in us-east-1a](images/alb-response-us-east-1a.png)
+
+[ALB response in us-east-1b](images/alb-response-us-east-1b.png)
+
+[Target group showing instance health mid failover](images/target-group-mid-failover.png)
+
+[ASG log showing an instance launch in response to health check fail after instance termination](images/asg-instance-replacement.png)
