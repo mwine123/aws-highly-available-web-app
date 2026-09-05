@@ -38,3 +38,21 @@ I wrote an IAM role policy to allow the instances list and get the objects in th
 Initially, I had a wildcard allowing simple `AmazonS3ReadOnlyAccess` to my account-wide s3 buckets. I then scoped it down to allow 's3:GetObject' and 
 `s3:ListBucket` from only the bucket with the website and the resources in the bucket. This is so that if an attacker obtains the instance 
 credentials, the attacker can only read my public website files which are already public.
+
+The goal was to demonstrate the architecture so I decided to use a static website to stand in for an application that needs server-side 
+compute. A static website, however, is better served by S3 and CloudFront.
+
+For the Auto Scaling Group, the minimum was set at 2. This is because I had 2 availability zones and I wanted an instance in 
+each of them to increase availability. The desired was also set at 2 because I was optimizing for availability and I wanted an 
+instance up that the ALB could direct traffic to while the ASG would be provisioning a replacement instance if one instance 
+failed. Max was set at 4 because I estimated at most a double increase in traffic at peak and it was also a cost decision to 
+cap my spend.
+
+I added an ELB health check to the EC2 health checks for the ASG because an EC2 health check alone would not detect if there 
+was something wrong with the application on the instances. ELB health checks, however, send requests to the health check path 
+and look at the response, matching the expected status code within the timeout to know if the application is running properly.
+
+The decision to have two AZs also stemmed from the decision to optimize availability. I wanted to have the application hosted 
+in two different availability zones so that if one availability zone had any issues, the application would still be up in 
+another availability zone. Two is also the minimum the ALB requires so I needed two availability zones in order to create the ALB.
+
