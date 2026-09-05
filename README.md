@@ -29,12 +29,12 @@ Linux repos live because the gateway endpoint has no hourly or data charge.
 
 I wrote a line in my user data that used IMDSv2 to retrieve some metadata because said metadata lives where the credentials for the 
 assume role we created for the instance to be able to access S3 buckets live and we did not want accidental data leaks. The IMDSv2
-protects against simple GET SSRF attacks by using a PUT to request a session token before it fetches any metadata. SSRF attacks can 
-usually only trigger simple GET requests. It also has a Hop Limit Control. It lets you set a response hop limit (TTL) to 2, this 
+protects against simple 'GET' SSRF attacks by using a 'PUT' to request a session token before it fetches any metadata. SSRF attacks can 
+usually only trigger simple 'GET' requests. It also has a Hop Limit Control. It lets you set a response hop limit (TTL) to 2, this 
 limits how many network hops the response can travel and prevents other services, containerised workloads or proxies running in 
 the instance from relaying the metadata response further than intended. 
 
 I wrote an IAM role policy to allow the instances list and get the objects in the S3 bucket that contains the static website files.
-Initially, I had a wildcard allowing simple AmazonS3ReadOnlyAccess to my account-wide s3 buckets. I then scoped it down to allow s3:GetObject and 
-s3:ListBucket from only the bucket with the website and the resources in the bucket. This is so that if an attacker obtains the instance 
+Initially, I had a wildcard allowing simple 'AmazonS3ReadOnlyAccess' to my account-wide s3 buckets. I then scoped it down to allow 's3:GetObject' and 
+'s3:ListBucket' from only the bucket with the website and the resources in the bucket. This is so that if an attacker obtains the instance 
 credentials, the attacker can only read my public website files which are already public.
