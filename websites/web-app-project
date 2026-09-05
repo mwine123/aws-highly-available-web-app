@@ -1,0 +1,67 @@
+**september 3, 2026**
+
+#HIGHLY AVAILABLE WEB APPLICATION
+----------------------------------
+I am going to be using a static website for this project because, it is just meant for
+me to try new thing and to explore and break things and fix them again. Plus that is 
+frankly all i have. so far, i have created the vpc which wasnt very hard to do. i have
+also created the subnets which was a little tricky to figure out the ip ranges but 
+after a little refresher from my cisco networking class notes, i easily did the subneting 
+and figure it out. i also have my gateway and route tablea up and connected to everything
+it has to be connected to. i am now creating a launch template for my ec2 instances in 
+so that in case of faiilure my asg has a template to go off on when creating new 
+instances.
+i put the instances in a private subnet because i wanted only the application load 
+balancer to be able to send traffic into the instances. this would help with traffic
+distribution and when an instance is unhealthy, the alb would jjust route the traffic 
+to a healthy instance while an new one is being provisioned. this would generally 
+increase availability. if people could access 
+the instnace directly then all of that would be optional and thats not what we want.
+the instance security group configured to only accept http traffic from the alb 
+bbecause we dont want anything else talking to the instance so we connected it to 
+the security group of the alb we referenced a security group because an ip range was
+too broad and the ip of the alb was not static but the security group was more straight 
+to the point. i excluded the nat gateway from the project because 
+i was hosting a static website that didnt need internet accees which eas a strategic
+decision in other to cut cost on the project and to acces the packages and stuff for the 
+ami, i created the s3 endpoint and connected it to the subnets where the instances 
+would be launched. i also had to write a line in the user date to use IMDSv2 to get some
+metadata because the metadata is located where the credentials for the assume role is 
+located and we didnt want an accidental data leak. 
+after creating the first draft of the template, i tested it out on a instance by adding it
+by hand and oh my God did i run into issues.i realized i needed an s3 gateway endpoint so i 
+configured an s3 gateway endpoint so i could fetch the packages for the amazom linux. i was 
+also missing the iam role i created for the instance so it could access s3 buckets so i had 
+to modify the template and add it into the instance profile section. since
+the instance is in a private subnet route table and cant access the internet but i mistakenly attached
+the endpoint to the public subnets route table instead and i also didnt add a subnet to the launch 
+template so one was always chosen for me. i had to fix that too and remove the subnet
+later after i had everything working before addint the asg then my final issue for 
+the launch template was the user data. that was a lot i initially put if statements at
+each step which was unneccessary so i removed them. one good thing 
+was using set -euo pipefail to handle errors and /dev/console to output to the
+console so that i could see what was breaking 
+in the user data. helped things a lot. but generally the idea of the uuser data was to 
+install nginx, sync the static website from s3 to the /usr/share/nginx/html file in the
+instance, fetch AZ via IMDSv2, write the AZ into instance-info.html and enable and start
+nginx. we had a curl error (28) and that was because we couldnt fetch the packages for the 
+amazon linux so the system ignores repositories and found no match for nginx.
+ once all of theat was fixed, the instance boot in no tiime and i attached
+the elb and target group to check the health and it was healthy. 
+i deleted the test instance and created an autoscaling group for the instance after i was sure
+everything was working perfectly. i set the min to 2, desired to 2 and max to 4 because we needed 
+at least 2 instances for reliability and 4 max accross both availability zones because i optimized 
+for at most a double increase in traffic and canges when needed and enabled ELB health checks 
+because ec2 healthchecks only checked if the ec2 was running and not if it couldnt accept
+taffic or is slow. i rewrote the iam policy for the for the iam role to scopr it to only
+getobject and listbucket and set the resources to the arn of the bucket and the arn of the 
+bucket with /* that is the bucket and the things or files in it.
+
+**unresolved**
+the alb is unreachable from the internet but curl showed the dns resolving to the two ips
+but the connection attepts hanging. so far, i checked if the alb was internet-facing, in
+both piblic subnets, security group allowing 0.0.0.0/0 on port 80, listener forwarding to
+target group, both targets healthy, NACL at default allowing all on all four subnets and 
+everything looked good yet the connection failed on two ddifferent browsers and on the phone.
+we still dont know what is causing it. to save money, i tore down the asg and alb and left 
+everything else. we will rebuild tomorrow and work on it again to find out what went wrong.

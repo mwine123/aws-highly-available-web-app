@@ -1,10 +1,10 @@
 # aws-highly-available-web-app
-A website hosted on 2 ec2 instances in a VPC, built for high availability with failover tested across 2 availability zones. 
-This project is an opportunity for me to learn more and get some hands on practice. It is a 
+A website hosted on 2 EC2 instances in a VPC, built for high availability with failover tested across 2 availability zones. 
+This project is an opportunity for me to learn more and get some hands-on practice. It is a 
 highly available website hosted in two EC2 instances in the private subnets of a VPC in two AZs. The instances are
-attached to an autoscaling group and an s3 endpoint for the instances to get the files for the website from an s3 bucket.
+in an auto scaling group with an S3 endpoint giving the instances a route to S3 to get the website files and Amazon Linux repo packages.
 An application load balancer is placed in the public subnets to receive and route traffic into the instances and an
-internet gateway to connect the VPC to the internet.
+internet gateway to connect the VPC to the internet. [Here are the website files](website).
 
 
 ![Architecture diagram](images/architecture.png)
@@ -32,17 +32,18 @@ Linux repos live because the gateway endpoint has no hourly or data charge.
 
 ### IMDSv2
 I wrote a line in my user data that used IMDSv2 to retrieve some metadata because said metadata lives where the credentials for the 
-assume role we created for the instance to be able to access S3 buckets live and we did not want accidental data leaks. The IMDSv2
+assume role I created for the instance to be able to access S3 buckets live and I did not want accidental data leaks. The IMDSv2
 protects against simple `GET` SSRF attacks by using a `PUT` to request a session token before it fetches any metadata. SSRF attacks can 
 usually only trigger simple `GET` requests. It also has a Hop Limit Control. It lets you set a response hop limit (TTL) to 2, this 
 limits how many network hops the response can travel and prevents other services, containerised workloads or proxies running in 
-the instance from relaying the metadata response further than intended. 
+the instance from relaying the metadata response further than intended. [This is the full user data script](scripts/user-data.sh).
 
 ### IAM role policy
 I wrote an IAM role policy to allow the instances to list and get the objects in the S3 bucket that contains the static website files.
-Initially, I had a wildcard allowing simple `AmazonS3ReadOnlyAccess` to my account-wide s3 buckets. I then scoped it down to allow 
+Initially, I had a wildcard allowing simple `AmazonS3ReadOnlyAccess` to my account-wide S3 buckets. I then scoped it down to allow 
 `s3:GetObject` and `s3:ListBucket` from only the bucket with the website and the resources in the bucket. This is so that if an 
 attacker obtains the instance credentials, the attacker can only read my public website files which are already public.
+[This is the IAM role policy](policies/iam-role-policy.json).
 
 ### Static Website
 The goal was to demonstrate the architecture so I decided to use a static website to stand in for an application that needs server-side 

@@ -1,0 +1,18 @@
+**3rd September,2026**
+
+#A RESPONSIVE PORTFOLIO HOSTED AS A STATIC WEBSITE ON AMAZON S3
+----------------------------------------------------------------
+I started creating the website using HTML, JavaScript and CSS. Once i was ddone with 
+that, i proceeded to create the s3 bucket. i allwed public access to the bucket to
+start with but when i add the cloudfront to it, i will block public access and only 
+allow access from cloudfront. I am using cloudfront because it protects against DDOS
+attacks and also improves latency of the website through caching. I just uploaded the 
+files and had to enable static website hosting, then i remebered i had to add a bucket 
+policy before i can view the website on a web browser so i did that. i allowed Public
+read get object and it all fell into place so now my website is up and active. Now we 
+move on to creating the cloudfront destribution and getting the website up and active 
+through it.
+i started trying to create the cloudfront distritubtion but i got an error that my 
+account need to be verified before i can create cloudfront resources so this project 
+is officially on hold until i can hear anything from the support team.
+
