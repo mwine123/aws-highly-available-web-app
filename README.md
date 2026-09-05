@@ -35,7 +35,7 @@ limits how many network hops the response can travel and prevents other services
 the instance from relaying the metadata response further than intended. 
 
 I wrote an IAM role policy to allow the instances list and get the objects in the S3 bucket that contains the static website files.
-Initially, I had a wildcard allowing simple `AmazonS3ReadOnlyAccess` to my account-wide s3 buckets. I then scoped it down to allow 's3:GetObject' and 
+Initially, I had a wildcard allowing simple `AmazonS3ReadOnlyAccess` to my account-wide s3 buckets. I then scoped it down to allow `s3:GetObject` and 
 `s3:ListBucket` from only the bucket with the website and the resources in the bucket. This is so that if an attacker obtains the instance 
 credentials, the attacker can only read my public website files which are already public.
 
